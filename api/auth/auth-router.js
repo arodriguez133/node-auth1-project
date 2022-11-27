@@ -59,7 +59,13 @@ router.post('/register', async (req, res, next) => {
 router.post('/login', async (req, res, next) => {
   try {
     const { username, password } = req.body;
-    const existing = await findBy({ username })
+    const [user] = await findBy({ username })
+    if (user && bcrypt.compareSync(password, user.password)) {
+      req.session.user = user;
+      res.json({
+        message: `Welcome ${username}!`
+      })
+    }
   }
   catch (err) {
     next(err)
@@ -83,7 +89,19 @@ router.post('/login', async (req, res, next) => {
  */
 
 router.get('/logout', (req, res, next) => {
-  res.json('logout wired!')
+  if (req.session.user) {
+    req.session.destroy(err => {
+      if (err) {
+        res.json({ message: 'Sorry, you cannot leave!' })
+      } else {
+        res.json({ message: 'Goodbye!' })
+      }
+    })
+  } else {
+    res.json({
+      message: "But, I don't know you"
+    })
+  }
 })
 // Don't forget to add the router to the `exports` object so it can be required in other modules
 module.exports = router

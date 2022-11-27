@@ -7,8 +7,11 @@
   }
 */
 function restricted(req, res, next) {
-  console.log('restricting access to authed users only')
-  next()
+  if (req.session.user) {
+    next()
+  } else {
+    next({ status: 401, message: "You shall not pass!" })
+  }
 }
 
 /*
